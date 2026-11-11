@@ -1,26 +1,204 @@
 # FlashFX Alpha
 
-The earliest public prototype of [FlashFX](https://flashfx.app), a browser-based motion design editor.
+FlashFX Alpha is the earliest prototype of FlashFX, a browser-based design editor intended to grow into a motion design tool. It is a single-page React application with a canvas for shapes, text, lines and images, a layers panel, a properties panel, image filters, PNG/JPEG/ZIP export, and project storage either in the browser (guest mode) or in Supabase (signed-in accounts). The page title in `index.html` is "FlashFX DEMO - UI Design Tool", which is an accurate summary of what this version does: the design side works, while the animation side is only a visual scaffold.
 
-> This repository is kept for history. It was followed by [FlashFX_MVP](https://github.com/gabrielebolognese/FlashFX_MVP), and the current editor is [FlashFX-v2](https://github.com/gabrielebolognese/FlashFX-v2), live at [editor.flashfx.app](https://editor.flashfx.app).
+This repository is kept for history. It was followed by [FlashFX_MVP](https://github.com/gabrielebolognese/FlashFX_MVP), and the current editor is [FlashFX-v2](https://github.com/gabrielebolognese/FlashFX-v2).
 
-## What is in it
+## Features
 
-- A design tool for shapes, text and images
-- A first timeline
-- Export
-- Accounts and projects stored in Supabase
-- An in-app tutorial
+### Canvas and elements
 
-## Stack
+- Element types: rectangle, circle, text, button, chat bubble, chat frame, line, arrow, pen path, image and group.
+- Per-element position, size, rotation, opacity, lock and visibility.
+- Fill colour or linear/radial gradient with multiple colour stops, stroke, corner radius and drop shadow.
+- Text controls: font family, size, weight, style, transform, alignment (horizontal and vertical), colour, letter, word and line spacing, decoration. Fonts are loaded from Google Fonts.
+- Lines, arrows and pen paths: editable points, per-point corner radius, arrowheads (triangle, circle, bar, diamond) on either end, line cap and join, dash patterns, smoothing, trim start/end and closed paths.
+- Grouping and ungrouping, duplication, multi-selection and a right-click context menu.
+- Undo and redo history.
+- Zoom between 25% and 300%, a configurable grid, snap to grid and visual snap guides.
+- Canvas background built from stacked gradient layers with colour stops, direction and blend modes.
 
-React 18, TypeScript, Vite, Tailwind CSS and Supabase (auth, database and storage).
+### Images
 
-## Running it
+- Import images from disk.
+- Image search through the Google Custom Search API and image generation with DALL-E 3 (see the note on API keys below).
+- Blend modes and a large filter set: basic adjustments (brightness, contrast, exposure, gamma, temperature, tint, vibrance, saturation), HSL, colour balance, levels, RGB channels, blur, sharpen, noise, distortion, lens effects, stylize and special effects. Filters are implemented in `src/utils/imageFilters.ts` and `src/utils/webglFilters.ts`.
+
+### Panels
+
+- Layers panel with tabs for layers, AI chat and presets.
+- Properties panel with dedicated tabs for shapes, text, lines and images.
+- Presets: save a selection as a reusable preset and insert it again later (stored in the Supabase `presets` table).
+- JSON editors for a single element and for the whole project, with schema validation (Ajv) and a Monaco editor.
+- Editor settings modal and a keyboard shortcuts reference modal.
+- A seven-step in-app tutorial overlay.
+
+### AI (experimental)
+
+- An AI chat tab that turns a text prompt into canvas elements through a three-stage pipeline built on the OpenAI Assistants API: prompt validation, a high-level breakdown into shapes, and low-level generation of each shape. Chat history is kept in `localStorage`.
+- The pipeline uses assistant IDs hardcoded in `src/services/OpenAIService.ts`, so it only works with the OpenAI account those assistants belong to.
+
+### Timeline (scaffold only)
+
+- A two-part timeline area with a general clip timeline and an animation timeline, a ruler, a draggable playhead and a resizable splitter.
+- Keyframes are not implemented. The animation timeline shows "No keyframe features available yet" and its "Add Keyframe" control is disabled. Only the design layout mode is available.
+
+### Export
+
+- Export the whole canvas as PNG or JPEG.
+- Export every shape as a separate PNG inside a ZIP archive.
+- Export the current selection as a PNG, or as a ZIP when several elements are selected.
+
+### Projects and accounts
+
+- Guest mode is on by default: projects are stored in `localStorage` and no account is needed.
+- Sign up with email, password and username; sign in with email or username; OAuth sign-in with Google or GitHub (requires those providers to be enabled in the Supabase project).
+- Cloud projects in Supabase with per-user storage tracking (default limit 100 MB), a storage indicator and avatar upload (5 MB maximum).
+- Save and load projects as `.ffxproj` files.
+- Automatic preview backup: a canvas preview is uploaded to the `project-previews` storage bucket every 60 seconds for signed-in users.
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 18 or 20+ (required by Vite 5) and npm.
+- Optional: a Supabase project, needed only for accounts, cloud projects, presets and avatars.
+
+### Download
+
+```bash
+git clone https://github.com/gabrielebolognese/FlashFX-Alpha.git
+cd FlashFX-Alpha
+```
+
+### Install dependencies
 
 ```bash
 npm install
+```
+
+### Configuration
+
+Create a `.env` file in the project root (it is git-ignored). There is no `.env.example`; the variable names below come from the code.
+
+| Variable | Used in | Purpose |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | `src/lib/supabase.ts` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | `src/lib/supabase.ts` | Supabase anon key |
+| `VITE_OPENAI_API_KEY` | `src/services/OpenAIService.ts` | OpenAI key for the AI chat pipeline |
+
+Without the Supabase variables the app still starts, logs an error to the console and falls back to a placeholder client, so only guest mode works.
+
+To set up the database, apply the SQL files in `supabase/migrations/` to your Supabase project in filename order. They create the `profiles`, `projects`, `presets` and `project_files` tables and the `project-previews` and `avatars` storage buckets.
+
+Note on API keys: the Google image search modal, the DALL-E modal and `FlashFX_AI_Component.tsx` use credentials written directly in the source instead of environment variables. To use those features you have to replace them with your own keys in `src/components/image/GoogleImageSearchModal.tsx`, `src/components/image/DalleGenerateModal.tsx` and `src/components/FlashFX_AI_Component.tsx`. All of these calls are made from the browser, so any key you supply is visible to users of the built app.
+
+### Run in development
+
+```bash
 npm run dev
 ```
 
-The app needs a Supabase project. Apply the SQL in `supabase/migrations/` and provide the project URL and anon key as Vite environment variables.
+Vite prints the local URL to open in the browser.
+
+## Build and deploy
+
+```bash
+npm run build
+```
+
+The production build is written to `dist/`. It is a static site and can be served by any static host; `npm run preview` serves the build locally. Routing is hash-based (`#/home`, `#/auth`, `#/editor`), so no server-side rewrite rules are needed. The repository contains no deployment configuration or CI workflow.
+
+## Usage
+
+1. Open the app. It starts on the home page (`#/home`) in guest mode.
+2. Create a new project with a name and background colour, or load a `.ffxproj` file. Use `#/auth` to sign up or sign in if Supabase is configured.
+3. Opening a project loads the editor (`#/editor?project=<id>`). Add elements from the top bar, arrange them on the canvas, and edit them in the properties panel on the right. The layers panel on the left also holds the AI and presets tabs.
+4. Export from the top bar or with `Ctrl+E`.
+
+### npm scripts
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Starts the Vite development server |
+| `npm run build` | Builds the production bundle into `dist/` |
+| `npm run preview` | Serves the production build locally |
+| `npm run lint` | Runs ESLint over the project |
+
+### Keyboard shortcuts
+
+These are the shortcuts implemented in `src/hooks/useKeyboardShortcuts.ts` and `src/hooks/useGlobalKeyboardShortcuts.ts`. The in-app shortcuts modal lists some different keys and some animation shortcuts that are not implemented.
+
+| Keys | Action |
+| --- | --- |
+| `Q` / `W` / `E` | Create rectangle / circle / text |
+| `R` / `T` / `Y` | Create button / chat bubble / chat frame |
+| `U` | Create line |
+| `I` | Import image |
+| `G` | Toggle grid |
+| `+` / `-` | Zoom in / out |
+| `Ctrl+Z`, `Ctrl+Shift+Z` or `Ctrl+Y` | Undo, redo |
+| `Ctrl+D` | Duplicate selection |
+| `Ctrl+G`, `Ctrl+Shift+G` | Group, ungroup |
+| `Ctrl+A` | Select all |
+| `Ctrl+E` | Export |
+| `Ctrl+;` | Toggle snapping |
+| Arrow keys, `Shift` + arrow keys | Nudge selection by 1 px, 10 px |
+| `Delete` / `Backspace` | Delete selection |
+| `Esc` | Deselect |
+
+## Project structure
+
+| Path | Contents |
+| --- | --- |
+| `src/App.tsx` | Hash router: home, auth and editor pages |
+| `src/pages/` | Home (project list), auth and login pages |
+| `src/components/UIDesignTool.tsx` | Editor root: state, history, shortcuts, modals |
+| `src/components/design-tool/` | Canvas, elements, lines, layers, AI chat, presets, JSON editors, grid, snapping |
+| `src/components/layout/` | Top bar, properties panel tabs, background settings, design layout |
+| `src/components/image/` | Image import, Google search, DALL-E and filter controls |
+| `src/components/timeline/` | General and animation timeline scaffolds |
+| `src/components/tutorial/` | Tutorial overlay and panel |
+| `src/components/modals/`, `auth/`, `project/`, `storage/` | Project, settings, auth and storage UI |
+| `src/export/` | Canvas, shape and ZIP exporters and the export dialog |
+| `src/services/` | Supabase projects, presets, storage, avatars, auto backup, project files, OpenAI |
+| `src/hooks/`, `src/contexts/` | Editor hooks, auth and tutorial contexts |
+| `src/types/`, `src/utils/` | Type definitions, filters, JSON schema and validation, grouping helpers |
+| `supabase/migrations/` | SQL migrations for tables, policies and storage buckets |
+
+## Tech stack
+
+- React 18 and TypeScript
+- Vite 5
+- Tailwind CSS 3 with PostCSS and Autoprefixer
+- Supabase (`@supabase/supabase-js`) for auth, database and storage
+- Monaco Editor and Ajv for the JSON editors
+- html-to-image, JSZip and file-saver for export
+- lucide-react icons
+- OpenAI Assistants and Images APIs, Google Custom Search API (called from the browser)
+- ESLint with typescript-eslint
+
+## Further documentation
+
+Implementation notes written during development are kept in the repository root. They describe the intent at the time and may not match the final code.
+
+- [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)
+- [AI_IMPLEMENTATION_ANALYSIS.md](AI_IMPLEMENTATION_ANALYSIS.md)
+- [AI_PIPELINE_STEP_BREAKDOWN.md](AI_PIPELINE_STEP_BREAKDOWN.md)
+- [AUTHENTICATION_SYSTEM_DOCUMENTATION.md](AUTHENTICATION_SYSTEM_DOCUMENTATION.md)
+- [AUTHENTICATION_FIX_IMPLEMENTATION.md](AUTHENTICATION_FIX_IMPLEMENTATION.md)
+- [AUTH_DATABASE_ANALYSIS.md](AUTH_DATABASE_ANALYSIS.md)
+- [AUTO_BACKUP_IMPLEMENTATION.md](AUTO_BACKUP_IMPLEMENTATION.md)
+- [BACKGROUND_FEATURE_DOCUMENTATION.md](BACKGROUND_FEATURE_DOCUMENTATION.md)
+- [DUAL_TIMELINE_LAYOUT_README.md](DUAL_TIMELINE_LAYOUT_README.md)
+- [EXPORT_SYSTEM_DOCUMENTATION.md](EXPORT_SYSTEM_DOCUMENTATION.md)
+- [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
+- [KEYBOARD_SHORTCUTS_IMPLEMENTATION.md](KEYBOARD_SHORTCUTS_IMPLEMENTATION.md)
+- [LAYOUT_BAR_IMPLEMENTATION.md](LAYOUT_BAR_IMPLEMENTATION.md)
+- [SNAPPING_VISUALIZATION_ENHANCEMENT.md](SNAPPING_VISUALIZATION_ENHANCEMENT.md)
+- [TEST_VERIFICATION_GUIDE.md](TEST_VERIFICATION_GUIDE.md)
+- [UI_MODIFICATIONS_SUMMARY.md](UI_MODIFICATIONS_SUMMARY.md)
+
+## Status
+
+Superseded prototype, kept for history and no longer developed. The design tools, export and project storage work; the timeline is a non-functional scaffold with no keyframes or animation playback, and the AI features depend on external accounts and keys. There are no automated tests. Some files are leftovers that nothing imports (`MainPage.tsx`, `Header.tsx`, `LayoutComposer.tsx`, `LoginPage.tsx`). For the current editor see [FlashFX-v2](https://github.com/gabrielebolognese/FlashFX-v2).
