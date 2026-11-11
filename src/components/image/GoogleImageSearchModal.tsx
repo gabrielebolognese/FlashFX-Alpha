@@ -28,8 +28,8 @@ const GoogleImageSearchModal: React.FC<GoogleImageSearchModalProps> = ({
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const API_KEY = 'AIzaSyBK8-0V3lR17qYhJAnWMhRXQRqof-kHJ_g';
-  const SEARCH_ENGINE_ID = 'a3e3e8d4f8f4b4c2c';
+  const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY ?? '';
+  const SEARCH_ENGINE_ID = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID ?? '';
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

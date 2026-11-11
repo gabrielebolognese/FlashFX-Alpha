@@ -18,7 +18,7 @@ const DalleGenerateModal: React.FC<DalleGenerateModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_KEY = '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';
+  const API_KEY = import.meta.env.VITE_OPENAI_API_KEY ?? '';
 
   const handleGenerate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

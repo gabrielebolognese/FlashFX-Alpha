@@ -103,7 +103,7 @@ const FlashFXAIComponent: React.FC<FlashFXAIComponentProps> = ({
   };
 
   // OpenAI API Configuration
-  const OPENAI_API_KEY = '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';
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY ?? '';
   const ASSISTANT_1_ID = 'asst_uLIk3I1aeLrCJI23m3F84lWl'; // High-level structure
   const ASSISTANT_2_ID = 'asst_oehfC2Wuz6DoBuufgE3I1vqP'; // Detailed shapes
 

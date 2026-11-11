@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GoogleFont, CustomFont, FontState } from '../types/fonts';
 
-const GOOGLE_FONTS_API_KEY = 'AIzaSyDummyKeyForDemo'; // Replace with actual API key
+const GOOGLE_FONTS_API_KEY = import.meta.env.VITE_GOOGLE_FONTS_API_KEY ?? '';
 const GOOGLE_FONTS_API_URL = `https://www.googleapis.com/webfonts/v1/webfonts?key=${GOOGLE_FONTS_API_KEY}`;
 
 // Popular Google Fonts for demo (in production, fetch from API)

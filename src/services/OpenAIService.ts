@@ -5,7 +5,7 @@ import {
   PipelineError,
 } from '../types/aiPipeline';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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';
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY ?? '';
 const OPENAI_API_BASE = 'https://api.openai.com/v1';
 
 const VALIDATOR_ASSISTANT_ID = 'asst_0crxCl5jFThLe0uN6xKwgJAa';
